@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
     agent.iconPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.png');
 
     // Manual logging command
-    let disposable = vscode.commands.registerCommand('ai-interaction-logger.logManual', async () => {
+    let logManualDisposable = vscode.commands.registerCommand('ai-interaction-logger.logManual', async () => {
         const prompt = await vscode.window.showInputBox({ prompt: 'Enter the prompt you want to log' });
         if (!prompt) return;
 
@@ -36,10 +36,25 @@ export function activate(context: vscode.ExtensionContext) {
         if (!response) return;
 
         await logInteraction(prompt, response);
-        vscode.window.showInformationMessage('Interaction logged successfully!');
     });
 
-    context.subscriptions.push(disposable);
+    // Open logs directory command
+    let openDirDisposable = vscode.commands.registerCommand('ai-interaction-logger.openLogDir', async () => {
+        let logDir = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
+        
+        if (!logDir && vscode.workspace.workspaceFolders) {
+            logDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        }
+
+        if (!logDir) {
+            logDir = process.env.USERPROFILE || process.env.HOME || '.';
+        }
+
+        const uri = vscode.Uri.file(logDir);
+        await vscode.commands.executeCommand('revealFileInOS', uri);
+    });
+
+    context.subscriptions.push(logManualDisposable, openDirDisposable);
 }
 
 async function logInteraction(prompt: string, aiResponse: string) {
@@ -56,7 +71,7 @@ async function logInteraction(prompt: string, aiResponse: string) {
     const fileName = `prompt-and-response-${timestamp}.txt`;
     
     const separator = '-'.repeat(50);
-    const content = `PROMPT:\n${prompt}\n\n${separator}\n\nRESPONSE:\n${aiResponse}\n`;
+    const content = `TIMESTAMP: ${now.toLocaleString()}\nPROMPT:\n${prompt}\n\n${separator}\n\nRESPONSE:\n${aiResponse}\n`;
 
     let logDir = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
     

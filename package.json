@@ -17,6 +17,10 @@
       {
         "command": "ai-interaction-logger.logManual",
         "title": "AI Logger: Log Manual Entry"
+      },
+      {
+        "command": "ai-interaction-logger.openLogDir",
+        "title": "AI Logger: Open Logs Directory"
       }
     ],
     "chatParticipants": [
