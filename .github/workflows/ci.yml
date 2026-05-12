@@ -26,6 +26,9 @@ jobs:
       - name: Compile Extension
         run: npm run compile
 
+      - name: Run Lint
+        run: npm run lint
+
       - name: Get current timestamp
         id: timestamp
         run: echo "TIMESTAMP=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV

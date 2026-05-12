@@ -72,10 +72,18 @@ async function logInteraction(prompt: string, aiResponse: string) {
     const filePath = path.join(logDir, fileName);
 
     try {
+        // Ensure directory exists
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
+        }
+
         fs.writeFileSync(filePath, content, 'utf8');
         console.log(`Logged to ${filePath}`);
+        vscode.window.showInformationMessage(`Interaction logged: ${fileName}`);
     } catch (err) {
-        vscode.window.showErrorMessage(`Failed to write log file: ${err}`);
+        const errorMsg = `Failed to write log file to ${filePath}: ${err}`;
+        console.error(errorMsg);
+        vscode.window.showErrorMessage(errorMsg);
     }
 }
 
