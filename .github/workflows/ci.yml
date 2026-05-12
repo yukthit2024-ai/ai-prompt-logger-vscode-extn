@@ -1,0 +1,37 @@
+name: CI/CD Build VSIX
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Compile Extension
+        run: npm run compile
+
+      - name: Package Extension (VSIX)
+        run: npx @vscode/vsce package -o ai-interaction-logger.vsix
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vsix-package
+          path: ai-interaction-logger.vsix

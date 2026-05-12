@@ -1,0 +1,54 @@
+{
+  "name": "ai-interaction-logger",
+  "displayName": "AI Interaction Logger",
+  "publisher": "vypeensoft",
+  "description": "Logs AI prompts and responses to a timestamped file.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-interaction-logger.logManual",
+        "title": "AI Logger: Log Manual Entry"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "ai-logger.agent",
+        "name": "ai-logger",
+        "description": "An AI agent that logs everything you say and its responses.",
+        "isDefault": false
+      }
+    ],
+    "configuration": {
+      "title": "AI Interaction Logger",
+      "properties": {
+        "aiInteractionLogger.logDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Directory to save log files. Defaults to workspace root."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.5"
+  }
+}
