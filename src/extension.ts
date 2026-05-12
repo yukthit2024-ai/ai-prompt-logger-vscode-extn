@@ -10,15 +10,25 @@ export function activate(context: vscode.ExtensionContext) {
     const handler: vscode.ChatRequestHandler = async (request: vscode.ChatRequest, chatContext: vscode.ChatContext, response: vscode.ChatResponseStream, token: vscode.CancellationToken) => {
         
         const prompt = request.prompt;
-        // In a real scenario, you'd call an actual AI API here.
-        // For this extension, we'll just echo or use a placeholder response 
-        // to demonstrate the logging capability.
-        const aiResponse = `I received your prompt: "${prompt}". This interaction has been logged.`;
+        const lowerPrompt = prompt.toLowerCase();
+
+        // Check if user is asking for help or explanation
+        if (lowerPrompt.includes('how it works') || lowerPrompt.includes('help') || lowerPrompt.includes('what do you do')) {
+            const helpResponse = `### 🤖 AI Interaction Logger Help\n\nI am designed to capture and archive your AI interactions.\n\n**How I work:**\n1. I capture every prompt you send to me (@ai-logger).\n2. I save the interaction as a timestamped \`.txt\` file.\n3. I organize these logs in your workspace or a custom directory.\n\n**Commands you can use:**\n- \`AI Logger: Log Manual Entry\`: Manually log an external interaction.\n- \`AI Logger: Open Logs Directory\`: Quickly open your logs folder.\n\n**Configuration:**\n- Use \`aiInteractionLogger.logDirectory\` in settings to change where I save files.\n\n_Everything you say to me from now on will be logged!_`;
+            
+            // Log the help request too
+            await logInteraction(prompt, "Displayed Help Documentation");
+            
+            response.markdown(helpResponse);
+            return { metadata: { command: '' } };
+        }
+        
+        // Default: Log the interaction
+        const logPath = await logInteraction(prompt, "Logging this interaction...");
+
+        const aiResponse = `### Interaction Logged ✅\n\nI have captured your prompt: **"${prompt}"**\n\n- **Timestamp:** ${new Date().toLocaleString()}\n- **File Path:** \`${logPath || 'Unknown'}\`\n\n> [!TIP]\n> You can view all your logs by running the **AI Logger: Open Logs Directory** command.`;
 
         response.markdown(aiResponse);
-
-        // Log the interaction
-        await logInteraction(prompt, aiResponse);
 
         return { metadata: { command: '' } };
     };
@@ -57,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(logManualDisposable, openDirDisposable);
 }
 
-async function logInteraction(prompt: string, aiResponse: string) {
+async function logInteraction(prompt: string, aiResponse: string): Promise<string | null> {
     const now = new Date();
     
     // Format: yyyyMMdd.hhmmss
@@ -95,10 +105,12 @@ async function logInteraction(prompt: string, aiResponse: string) {
         fs.writeFileSync(filePath, content, 'utf8');
         console.log(`Logged to ${filePath}`);
         vscode.window.showInformationMessage(`Interaction logged: ${fileName}`);
+        return filePath;
     } catch (err) {
         const errorMsg = `Failed to write log file to ${filePath}: ${err}`;
         console.error(errorMsg);
         vscode.window.showErrorMessage(errorMsg);
+        return null;
     }
 }
 
