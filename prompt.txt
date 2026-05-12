@@ -3,3 +3,11 @@
 		It has to be written to a file with file name "prompt-and-response-yyyyMMdd.hhmmss.txt".  
 		The prompt and response should be separated with some specific separator, like a horizonal lines full of '-'
 *	add github action yml for CI/CD so that final output vsxi file is generated
+*	in github actios, change the final name to AI_Prompts_Logger_yyyyMMdd.hhmmss.vsxix
+*	
+*	
+*	
+*	
+*	
+*	
+*	
