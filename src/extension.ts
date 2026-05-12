@@ -83,31 +83,35 @@ async function logInteraction(prompt: string, aiResponse: string): Promise<strin
     const separator = '-'.repeat(50);
     const content = `TIMESTAMP: ${now.toLocaleString()}\nPROMPT:\n${prompt}\n\n${separator}\n\nRESPONSE:\n${aiResponse}\n`;
 
-    let logDir = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
+    let logDirUri: vscode.Uri | undefined;
+    let logDirStr = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
     
-    if (!logDir && vscode.workspace.workspaceFolders) {
-        logDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    if (logDirStr) {
+        logDirUri = vscode.Uri.file(logDirStr);
+    } else if (vscode.workspace.workspaceFolders) {
+        logDirUri = vscode.workspace.workspaceFolders[0].uri;
+    } else {
+        // Fallback to home directory
+        const home = process.env.USERPROFILE || process.env.HOME || '.';
+        logDirUri = vscode.Uri.file(home);
     }
 
-    if (!logDir) {
-        // Fallback to home directory if no workspace is open
-        logDir = process.env.USERPROFILE || process.env.HOME || '.';
-    }
-
-    const filePath = path.join(logDir, fileName);
+    const fileUri = vscode.Uri.joinPath(logDirUri, fileName);
 
     try {
-        // Ensure directory exists
-        if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir, { recursive: true });
-        }
+        // Ensure directory exists (create if missing)
+        await vscode.workspace.fs.createDirectory(logDirUri);
 
-        fs.writeFileSync(filePath, content, 'utf8');
-        console.log(`Logged to ${filePath}`);
+        // Write the file
+        const encoder = new TextEncoder();
+        const data = encoder.encode(content);
+        await vscode.workspace.fs.writeFile(fileUri, data);
+
+        console.log(`Logged to ${fileUri.fsPath}`);
         vscode.window.showInformationMessage(`Interaction logged: ${fileName}`);
-        return filePath;
+        return fileUri.fsPath;
     } catch (err) {
-        const errorMsg = `Failed to write log file to ${filePath}: ${err}`;
+        const errorMsg = `Failed to write log file to ${fileUri.fsPath}: ${err}`;
         console.error(errorMsg);
         vscode.window.showErrorMessage(errorMsg);
         return null;
