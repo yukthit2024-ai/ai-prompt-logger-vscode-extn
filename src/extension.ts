@@ -50,21 +50,38 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Open logs directory command
     let openDirDisposable = vscode.commands.registerCommand('ai-interaction-logger.openLogDir', async () => {
-        let logDir = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
+        let logDirStr = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
+        let logDirUri: vscode.Uri;
         
-        if (!logDir && vscode.workspace.workspaceFolders) {
-            logDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        if (logDirStr) {
+            logDirUri = vscode.Uri.file(logDirStr);
+        } else if (vscode.workspace.workspaceFolders) {
+            logDirUri = vscode.workspace.workspaceFolders[0].uri;
+        } else {
+            const home = process.env.USERPROFILE || process.env.HOME || '.';
+            logDirUri = vscode.Uri.file(home);
         }
 
-        if (!logDir) {
-            logDir = process.env.USERPROFILE || process.env.HOME || '.';
-        }
-
-        const uri = vscode.Uri.file(logDir);
-        await vscode.commands.executeCommand('revealFileInOS', uri);
+        await vscode.commands.executeCommand('revealFileInOS', logDirUri);
     });
 
-    context.subscriptions.push(logManualDisposable, openDirDisposable);
+    // Run diagnostics command
+    let diagnosticsDisposable = vscode.commands.registerCommand('ai-interaction-logger.runDiagnostics', async () => {
+        const testPrompt = "DIAGNOSTIC TEST";
+        const testResponse = "If you see this file, the extension is working correctly.";
+        
+        vscode.window.showInformationMessage("Starting diagnostics...");
+        
+        const result = await logInteraction(testPrompt, testResponse);
+        
+        if (result) {
+            vscode.window.showInformationMessage(`✅ Success! Test file created at: ${result}`);
+        } else {
+            vscode.window.showErrorMessage("❌ Failure! Could not create test file. Check Extension Host logs.");
+        }
+    });
+
+    context.subscriptions.push(logManualDisposable, openDirDisposable, diagnosticsDisposable);
 }
 
 async function logInteraction(prompt: string, aiResponse: string): Promise<string | null> {
