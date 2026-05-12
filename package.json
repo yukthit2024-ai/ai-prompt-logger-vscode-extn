@@ -3,7 +3,7 @@
   "displayName": "AI Interaction Logger",
   "publisher": "vypeensoft",
   "description": "Logs AI prompts and responses to a timestamped file.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.90.0"
   },

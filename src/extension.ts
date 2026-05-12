@@ -98,7 +98,7 @@ async function logInteraction(prompt: string, aiResponse: string): Promise<strin
     const fileName = `prompt-and-response-${timestamp}.txt`;
     
     const separator = '-'.repeat(50);
-    const content = `TIMESTAMP: ${now.toLocaleString()}\nPROMPT:\n${prompt}\n\n${separator}\n\nRESPONSE:\n${aiResponse}\n`;
+    const content = `VERSION: 0.0.2\nTIMESTAMP: ${now.toLocaleString()}\nPROMPT:\n${prompt}\n\n${separator}\n\nRESPONSE:\n${aiResponse}\n`;
 
     let logDirUri: vscode.Uri | undefined;
     let logDirStr = vscode.workspace.getConfiguration('aiInteractionLogger').get<string>('logDirectory');
